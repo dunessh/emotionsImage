@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Storage;
 use Session;
 use Redirect;
+use File;
 use App\Models\User;
 
 class TwitterController extends Controller
@@ -61,6 +62,7 @@ class TwitterController extends Controller
 		
 		$credentials = \Twitter::getCredentials();
 		$user_id = $credentials->id_str; 
+		$user_name = $credentials->name;
 		$screen_name = $credentials->screen_name;
 		$profile_image_normal = $credentials ->profile_image_url_https;
 		$profile_image = str_replace('_normal','',$profile_image_normal);
@@ -89,6 +91,7 @@ class TwitterController extends Controller
 				$totalTweets = 180;
 				$imagearray = array();
 				$data = \Twitter::getUserTimeline(['count' => 20, 'format' => 'array','include_entities' => 'true']);
+				
 				foreach($data as $key => $value){
 					if(!empty($value['extended_entities']['media'])){
 						foreach($value['extended_entities']['media'] as $v)
@@ -99,7 +102,11 @@ class TwitterController extends Controller
 							// file_put_contents("C:/Users/User/Desktop/twitterhehe/file.txt", $v['media_url_https']. "\n", FILE_APPEND);
 							$contents = file_get_contents($url);
 							$name = $screen_name.$index.'.jpg';
-							Storage::put($name, $contents);
+							// $contents->move(public_path('/images'), $name);
+							// $file =request()->file($contents);
+							// $file->store('toPath',['disk'=>'my_files']);
+							// Storage::put($name, $contents);
+							Storage::disk('public')->put($name, $contents);
 							$index+=1;
 							
 						}
@@ -118,7 +125,7 @@ class TwitterController extends Controller
 			
 
 			//return Redirect::to('/')->with('flash_notice', 'Congrats! You\'ve successfully signed in!');
-			return view('twitter.index',compact('data','screen_name','profile_image','followers_count','statuses_count','created_at'));
+			return view('twitter.index',compact('data','screen_name','profile_image','followers_count','statuses_count','created_at','user_name'));
 
 		}
 

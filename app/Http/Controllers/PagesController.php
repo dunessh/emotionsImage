@@ -19,12 +19,6 @@ class PagesController extends Controller
         $title = 'Sentiment Analysis';
         $imagearray = Session::get('key');
         $userID = Session::get('userID');
-        // $status = false;
-        // $userImage = Image::where('name',$user_id)->first();
-        // foreach($imagearray as $image)
-        // {
-        //     if($image)
-        // }
         
         $resp = Http::get('http://127.0.0.1:5000/webhook?username='.$userID);
         $person = json_decode($resp,true);
@@ -38,23 +32,23 @@ class PagesController extends Controller
         else{
             $mood = 'neutral';
         }
-
         
+        $image = image::where('id_str',$userID)->get();
+        foreach($image as $v){
+            $emotion = $v->sentiment;
+            if($emotion > 40){
+                $v->sentiment = 'Happy';
+            }
+            elseif($emotion == 40){
+                $v->sentiment = 'Neutral';
+            }
+            else{
+                $v->sentiment = 'Sad';
+            }
+        }
         
-        
-        // $newImage = new Image;
-        // $newImage->name = $person['dict'];
-        // foreach ($person['dict'] as $key => $node){
-        //      dd($key);
-        // }
-           
-
-		// $newuser->screen_name = $screen_name;
-
-		// $newuser->save();
-       
-
-        return view('twitter.analyze',['mood'=> $mood,'sentiment'=> $person['sentiment'],'negative'=> $person['negative'],'positive'=> $person['positive']]);
+      
+        return view('twitter.analyze',['mood'=> $mood,'sentiment'=> $person['sentiment'],'negative'=> $person['negative'],'positive'=> $person['positive'],'image'=>$image]);
     }
 
 
